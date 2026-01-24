@@ -7,40 +7,72 @@
 
 <h2>Penerjemah Bahasa</h2>
 
-@if ($errors->any())
-    <div style="color:red;">
-        @foreach ($errors->all() as $error)
-            <p>{{ $error }}</p>
-        @endforeach
-    </div>
-@endif
+<p id="error" style="color:red;"></p>
 
-<form method="POST" action="/translate">
+<form id="translateForm">
     @csrf
 
     <select name="source_lang">
-        <option value="id" {{ old('source_lang') == 'id' ? 'selected' : '' }}>Indonesia</option>
-        <option value="en" {{ old('source_lang') == 'en' ? 'selected' : '' }}>English</option>
+        <option value="id">Indonesia</option>
+        <option value="en">English</option>
     </select>
 
     <select name="target_lang">
-        <option value="en" {{ old('target_lang') == 'en' ? 'selected' : '' }}>English</option>
-        <option value="id" {{ old('target_lang') == 'id' ? 'selected' : '' }}>Indonesia</option>
+        <option value="en">English</option>
+        <option value="id">Indonesia</option>
     </select>
 
     <br><br>
 
-    <textarea name="text" rows="5" cols="50">{{ old('text') }}</textarea>
+    <textarea name="text" rows="5" cols="50" placeholder="Masukkan teks..."></textarea>
 
     <br><br>
 
     <button type="submit">Translate</button>
 </form>
 
-@if(isset($result))
-    <h3>Hasil Terjemahan:</h3>
-    <textarea rows="5" cols="50" readonly>{{ $result }}</textarea>
-@endif
+<h3 id="resultTitle" style="display:none;">Hasil Terjemahan:</h3>
+<textarea id="resultBox" rows="5" cols="50" readonly style="display:none;"></textarea>
+
+<script>
+document.getElementById('translateForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const errorEl = document.getElementById('error');
+    const resultBox = document.getElementById('resultBox');
+    const resultTitle = document.getElementById('resultTitle');
+
+    errorEl.textContent = '';
+    resultBox.style.display = 'none';
+    resultTitle.style.display = 'none';
+
+    const formData = new FormData(this);
+
+    try {
+        const response = await fetch('/ajax/translate', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            errorEl.textContent = data.message;
+            return;
+        }
+
+        resultTitle.style.display = 'block';
+        resultBox.style.display = 'block';
+        resultBox.value = data.translatedText;
+
+    } catch (error) {
+        errorEl.textContent = 'Terjadi kesalahan jaringan';
+    }
+});
+</script>
 
 </body>
 </html>
