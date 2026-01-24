@@ -5,3 +5,4 @@ use App\Http\Controllers\TranslateController;
 
 Route::get('/', [TranslateController::class, 'index']);
 Route::post('/translate', [TranslateController::class, 'translate']);
+Route::post('/ajax/translate', [TranslateController::class, 'ajaxTranslate']);
